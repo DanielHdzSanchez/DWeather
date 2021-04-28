@@ -90,7 +90,8 @@ class MainActivity : AppCompatActivity() {
                 findViewById<TextView>(R.id.tvAddress).text = address
                 findViewById<TextView>(R.id.tvUpdate).text = updatedAtText
                 findViewById<TextView>(R.id.tvStatus).text = weatherDescription.capitalize()
-                changeBackground(weatherDescription)
+                changeBackground(weather.getString("main"))
+                println("This is main: ${weather.getString("main")}")
                 findViewById<TextView>(R.id.tvTemperature).text = temp
                 findViewById<TextView>(R.id.tvMinTemperature).text = tempMin
                 findViewById<TextView>(R.id.tvMaxTemperature).text = tempMax
@@ -112,22 +113,22 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun changeBackground(description: String) {
+        val makeChanges: (Drawable) -> Unit = {
+            val changes = arrayOf(currentBackground, it)
+            val transitionDrawable = TransitionDrawable(changes)
+            superContainer.background = transitionDrawable
+            transitionDrawable.startTransition(2000)
+            currentBackground = it
+        }
         when(description) {
-            "clear sky" -> println()
-            "few clouds" -> println()
-            "scattered clouds" -> println()
-            "broken clouds" -> println()
-            "shower rain" -> println()
-            "rain" -> println()
-            "thunderstorm" -> println()
-            "snow" -> println()
-            "mist" -> {
-                val changes = arrayOf(currentBackground, ContextCompat.getDrawable(this, R.drawable.mist_bg))
-                val transitionDrawable = TransitionDrawable(changes)
-                superContainer.background = transitionDrawable
-                transitionDrawable.startTransition(2000)
-                currentBackground = ContextCompat.getDrawable(this, R.drawable.mist_bg)!!
-            }
+            "Clear" -> ContextCompat.getDrawable(this, R.drawable.clearsky_bg)?.let { makeChanges(it) }
+            "Clouds" -> ContextCompat.getDrawable(this, R.drawable.clouds_bg)?.let { makeChanges(it) }
+            "Drizzle" -> ContextCompat.getDrawable(this, R.drawable.drizzle_bg)?.let { makeChanges(it) }
+            "Rain" -> ContextCompat.getDrawable(this, R.drawable.rain_bg)?.let { makeChanges(it) }
+            "Thunderstorm" -> ContextCompat.getDrawable(this, R.drawable.thunderstorm_bg)?.let { makeChanges(it) }
+            "Snow" -> ContextCompat.getDrawable(this, R.drawable.snow_bg)?.let { makeChanges(it) }
+            "Mist" -> ContextCompat.getDrawable(this, R.drawable.mist_bg)?.let { makeChanges(it) }
+            else -> ContextCompat.getDrawable(this, R.drawable.gradient_bg)?.let { makeChanges(it) }
         }
     }
 }

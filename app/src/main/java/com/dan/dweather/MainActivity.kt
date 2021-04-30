@@ -1,6 +1,7 @@
 package com.dan.dweather
 
 import android.Manifest
+import android.content.Context
 import android.content.pm.PackageManager
 import android.graphics.drawable.Drawable
 import android.graphics.drawable.TransitionDrawable
@@ -17,6 +18,7 @@ import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.tasks.Task
+import com.google.android.material.switchmaterial.SwitchMaterial
 import com.squareup.picasso.Picasso
 import org.json.JSONObject
 import java.net.URL
@@ -27,7 +29,7 @@ import java.util.*
 class MainActivity : AppCompatActivity() {
     private val API = "119bee8d190813f3a7ed9520af0e7e7d"
     private lateinit var progressBar: ProgressBar
-    private lateinit var mainContainer: RelativeLayout
+    private lateinit var mainContainer: LinearLayout
     private lateinit var tvError: TextView
     private lateinit var swipeRefreshLayout: SwipeRefreshLayout
     private lateinit var currentBackground: Drawable
@@ -36,6 +38,8 @@ class MainActivity : AppCompatActivity() {
     private val LOCATION_REQUEST_CODE = 10001
     private lateinit var last: LatLng
     private lateinit var ivWeather: ImageView
+    private var units: String? = "metric"
+    private var degrees: String = "°C"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -54,6 +58,17 @@ class MainActivity : AppCompatActivity() {
             begin()
             swipeRefreshLayout.isRefreshing = false
         }
+
+        units = readPreference()
+
+        val swTemp = findViewById<SwitchMaterial>(R.id.swTemp)
+        swTemp.setOnCheckedChangeListener { _, isChecked ->
+            units = if (isChecked) "imperial" else "metric"
+            degrees = if (isChecked) "°F" else "°C"
+            begin()
+            savePreference()
+        }
+        swTemp.isChecked = units != "metric"
     }
 
     private fun begin() {
@@ -80,7 +95,7 @@ class MainActivity : AppCompatActivity() {
 
         override fun doInBackground(vararg params: String?): String? {
             return try {
-                URL("https://api.openweathermap.org/data/2.5/weather?lat=${last.latitude}&lon=${last.longitude}&units=metric&appid=$API")
+                URL("https://api.openweathermap.org/data/2.5/weather?lat=${last.latitude}&lon=${last.longitude}&units=$units&appid=$API")
                     .readText(Charsets.UTF_8)
             } catch (e: Exception) {
                 null
@@ -98,9 +113,9 @@ class MainActivity : AppCompatActivity() {
                 val weatherDescription = weather.getString("description")
                 val updatedAt: Long = jsonObject.getLong("dt")
                 val updatedAtText = "Updated at: ${SimpleDateFormat("dd/MM/yyy hh:mm a", Locale.ENGLISH).format(Date(updatedAt * 1000))}"
-                val temp = "${main.getString("temp").subSequence(0, 2)}°C"
-                val tempMin = "Min ${main.getString("temp_min").subSequence(0, 2)}°C"
-                val tempMax = "Max ${main.getString("temp_max").subSequence(0, 2)}°C"
+                val temp = "${main.getString("temp").subSequence(0, 2)}$degrees"
+                val tempMin = "Min ${main.getString("temp_min").subSequence(0, 2)}$degrees"
+                val tempMax = "Max ${main.getString("temp_max").subSequence(0, 2)}$degrees"
                 val pressure = main.getString("pressure")
                 val humidity = main.getString("humidity")
                 val sunrise: Long = sys.getLong("sunrise")
@@ -110,16 +125,16 @@ class MainActivity : AppCompatActivity() {
 
                 findViewById<TextView>(R.id.tvAddress).text = address
                 findViewById<TextView>(R.id.tvUpdate).text = updatedAtText
-                findViewById<TextView>(R.id.tvStatus).text = weatherDescription.capitalize()
+                findViewById<TextView>(R.id.tvStatus).text = weatherDescription.capitalize(Locale.ROOT)
                 changeBackground(weather.getString("main"))
                 findViewById<TextView>(R.id.tvTemperature).text = temp
                 findViewById<TextView>(R.id.tvMinTemperature).text = tempMin
                 findViewById<TextView>(R.id.tvMaxTemperature).text = tempMax
                 findViewById<TextView>(R.id.tvSunrise).text = SimpleDateFormat("hh:mm a", Locale.ENGLISH).format(Date(sunrise * 1000))
                 findViewById<TextView>(R.id.tvSunset).text = SimpleDateFormat("hh:mm a", Locale.ENGLISH).format(Date(sunset * 1000))
-                findViewById<TextView>(R.id.tvWind).text = "$windSpeed m/s"
-                findViewById<TextView>(R.id.tvPressure).text = "$pressure hPa"
-                findViewById<TextView>(R.id.tvHumidity).text = "$humidity%"
+                findViewById<TextView>(R.id.tvWind).text = windSpeed
+                "$pressure hPa".also { findViewById<TextView>(R.id.tvPressure).text = it }
+                "$humidity%".also { findViewById<TextView>(R.id.tvHumidity).text = it }
 
                 progressBar.visibility = View.GONE
                 mainContainer.visibility = View.VISIBLE
@@ -203,5 +218,18 @@ class MainActivity : AppCompatActivity() {
         if (requestCode == LOCATION_REQUEST_CODE)
             if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED)
                 getLastLocation()
+    }
+
+    private fun savePreference() {
+        val sharedPref = this.getPreferences(Context.MODE_PRIVATE) ?: return
+        with (sharedPref.edit()) {
+            putString("degrees", units)
+            apply()
+        }
+    }
+
+    private fun readPreference(): String? {
+        this.getPreferences(Context.MODE_PRIVATE)?.let { return it.getString("degrees", "metric") }
+        return "metric"
     }
 }

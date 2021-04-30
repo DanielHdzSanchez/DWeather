@@ -13,9 +13,10 @@
         android:id="@+id/swipeRefreshLayout"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
-        <RelativeLayout
+        <LinearLayout
             android:id="@+id/mainContainer"
             android:visibility="visible"
+            android:orientation="vertical"
             android:layout_width="match_parent"
             android:layout_height="match_parent">
             <LinearLayout
@@ -39,10 +40,26 @@
                     android:layout_height="wrap_content"/>
             </LinearLayout>
             <LinearLayout
-                android:orientation="vertical"
+                android:orientation="horizontal"
                 android:layout_width="match_parent"
-                android:gravity="center"
-                android:layout_marginTop="100dp"
+                android:layout_height="wrap_content">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:text="°C"
+                    android:layout_height="wrap_content"/>
+                <com.google.android.material.switchmaterial.SwitchMaterial
+                    android:id="@+id/swTemp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"/>
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:text="°F"
+                    android:layout_height="wrap_content"/>
+            </LinearLayout>
+            <LinearLayout
+                android:orientation="vertical"
+                android:layout_width="wrap_content"
+                android:layout_gravity="center"
                 android:layout_height="wrap_content">
                 <ImageView
                     android:id="@+id/ivWeather"
@@ -53,7 +70,7 @@
                 android:id="@+id/overviewContainer"
                 android:layout_width="match_parent"
                 android:orientation="vertical"
-                android:layout_centerInParent="true"
+                android:layout_marginBottom="100dp"
                 android:layout_height="wrap_content">
                 <TextView
                     android:id="@+id/tvStatus"
@@ -96,11 +113,13 @@
                 android:id="@+id/detailsContainer"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_alignParentBottom="true"
+                android:layout_gravity="bottom"
+                android:weightSum="2"
                 android:orientation="vertical">
                 <LinearLayout
                     android:orientation="horizontal"
                     android:weightSum="3"
+                    android:layout_weight="1"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content">
                     <LinearLayout
@@ -202,6 +221,7 @@
                     android:layout_height="10dp"/>
                 <LinearLayout
                     android:orientation="horizontal"
+                    android:layout_weight="1"
                     android:weightSum="3"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content">
@@ -301,7 +321,7 @@
                 </LinearLayout>
             </LinearLayout>
 
-        </RelativeLayout>
+        </LinearLayout>
     </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
     <ProgressBar
